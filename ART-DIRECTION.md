@@ -19,6 +19,8 @@ O arquivo do caminhão permanece intacto. O Canvas mascara a área da carga na c
 
 Os discos das três rodas são redesenhados em máscaras circulares centradas nos eixos. O ângulo é calculado pela distância percorrida dividida pelo raio do pneu. Não há rotação independente da rolagem; ao parar, as rodas param, e ao voltar, giram no sentido inverso. O modo de movimento reduzido mantém as etapas estáticas.
 
+Cada face recebe uma base opaca na cor do material antes da aplicação da textura. Essa base cobre a transparência residual nas bordas dos recortes; uma pequena sobreposição nas arestas também fecha o antialiasing entre faces. Assim, o fundo da página não aparece nas junções entre lateral, teto e portas.
+
 ## Conjunto de prompts final
 
 ### Caminhão — atualização de 22/10/2026

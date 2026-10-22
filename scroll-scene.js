@@ -162,13 +162,19 @@
     ctx.closePath(); ctx.clip(); ctx.transform(a,b,c,d,e,f);
     ctx.drawImage(texture,0,0); ctx.restore();
   }
-  function drawFace(texture,source,quad,columns,rows) {
+  function drawFace(texture,source,quad,columns,rows,material) {
     const area=quad.reduce((sum,[x,y],i)=>{const next=quad[(i+1)%4];return sum+x*next[1]-next[0]*y;},0)/2;
     // Faces voltadas para trás deixam de ser desenhadas durante a rotação.
     if(area<.4)return;
     const sourceMap=projectiveMap(source),destinationMap=projectiveMap(quad);
     ctx.save();ctx.beginPath();
-    quad.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.clip();
+    quad.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();
+    // As fotos recortadas têm alfa nas bordas. A face deve continuar opaca,
+    // inclusive sob esses pixels, para não revelar o fundo nas junções.
+    ctx.fillStyle=material;ctx.fill();
+    // Uma sobreposição subpixel sela também o antialiasing entre duas faces.
+    ctx.strokeStyle=material;ctx.lineWidth=1.25;ctx.lineJoin='round';ctx.stroke();
+    ctx.clip();
     for(let row=0;row<rows;row++) for(let col=0;col<columns;col++) {
       const a=[col/columns,row/rows],b=[(col+1)/columns,row/rows],c=[(col+1)/columns,(row+1)/rows],d=[col/columns,(row+1)/rows];
       textureTriangle(texture,[sourceMap(...a),sourceMap(...b),sourceMap(...c)],[destinationMap(...a),destinationMap(...b),destinationMap(...c)]);
@@ -180,9 +186,9 @@
     const face=indices=>indices.map(i=>body.corners[i]);
     const photo=indices=>indices.map(i=>PHOTO_CORNERS[i]);
     const n=mobile?5:8;
-    drawFace(images.truck,TRUCK.cargo,face([4,0,3,6]),n,4);
-    drawFace(images.cargo,photo([4,5,1,0]),face([4,5,1,0]),n,3);
-    drawFace(images.door,[[0,0],[1254,0],[1254,1254],[0,1254]],face([0,1,2,3]),n,n);
+    drawFace(images.truck,TRUCK.cargo,face([4,0,3,6]),n,4,'#bd4d22');
+    drawFace(images.cargo,photo([4,5,1,0]),face([4,5,1,0]),n,3,'#b65c2f');
+    drawFace(images.door,[[0,0],[1254,0],[1254,1254],[0,1254]],face([0,1,2,3]),n,n,'#aa4f2d');
   }
   function updateDOM(p) {
     const full=smooth(.025,.20,p);
