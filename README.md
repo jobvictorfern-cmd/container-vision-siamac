@@ -22,13 +22,15 @@ Abra `index.html` no navegador. Para publicar, envie os arquivos da raiz a uma h
 
 ## Animação
 
-`scroll-scene.js` controla a elevação e o giro pela rolagem nativa. O movimento é reversível; os controles inferiores permitem saltar entre as etapas. O braço e o spreader acompanham a posição do teto a cada quadro.
+`scroll-scene.js` controla a passagem de um caminhão carregado e o giro do contêiner pela rolagem nativa. O movimento é reversível; os controles inferiores permitem saltar entre Transporte, Contêiner e Identificação.
+
+A abertura mostra um caminhão branco com contêiner laranja, em imagem fotorrealista com transparência. Ao rolar, o conjunto avança para a esquerda até sair completamente da tela. Em seguida, o contêiner aparece e retoma o giro até a porta frontal, com o mesmo enquadramento e os mesmos dados da sequência anterior.
 
 O contêiner é um volume com geometria 3D: lateral, teto e portas compartilham os mesmos vértices. A câmera projeta a rotação no eixo vertical, reduz a inclinação e aproxima o conjunto até a vista frontal. As texturas acompanham cada face por homografia, sem separar a porta do restante do contêiner. A mesma imagem das portas é usada do início ao fim e coincide com o enquadramento final da interface.
 
-A cena usa as margens reais do cabeçalho como limite, com o conjunto em destaque na abertura e enquadramento controlado durante o giro. A escala inicial no computador ocupa até 76% dessa faixa, limitada também pela altura disponível. O contêiner começa suspenso, acima da cabine, e continua a subir pela rolagem. Sombras de contato ancoram os pneus; a sombra difusa da carga permanece no chão e se espalha com a elevação.
+A cena usa as margens reais do cabeçalho para enquadrar o caminhão na abertura e o contêiner durante o giro. A escala inicial respeita o texto e a altura disponível; quando o texto desaparece, o caminhão ganha destaque antes de sair. Uma sombra suave acompanha o veículo.
 
-No celular, a câmera acompanha o centro do volume e limita a largura para manter o contêiner inteiro na tela durante o giro. Os dados aparecem ao concluir a rotação. O amortecimento independe da taxa de atualização e o Canvas só redesenha durante movimento ou redimensionamento. O modo de movimento reduzido exibe etapas fixas.
+No celular, o caminhão é dimensionado para o espaço abaixo do texto. A câmera acompanha o centro do volume e limita a largura para manter o contêiner inteiro na tela durante o giro. Os dados aparecem ao concluir a rotação. O amortecimento independe da taxa de atualização e o Canvas só redesenha durante movimento ou redimensionamento. O modo de movimento reduzido exibe etapas fixas.
 
 Veja `ART-DIRECTION.md` para origem dos assets e prompts. As texturas e o equipamento são composições fotorrealistas geradas, não registros reais de uma instalação. O giro do contêiner segue um percurso definido pela rolagem.
 

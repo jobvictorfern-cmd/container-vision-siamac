@@ -69,10 +69,6 @@ h2 { margin-bottom: 0; font-size: clamp(34px, 3.5vw, 52px); line-height: 1.12; l
 .story-chapter { position: absolute; left: 56px; top: 15%; max-width: 440px; z-index: 5; opacity: 0; }
 .story-chapter h2 { font-size: clamp(34px, 3.6vw, 54px); letter-spacing: -1.9px; }
 .story-chapter > p { max-width: 340px; margin-top: 18px; color: #5b6f7e; font-size: 17px; }
-.lift-indicator { position: absolute; top: 39%; right: 6%; z-index: 4; display: flex; align-items: center; flex-direction: column; gap: 12px; opacity: 0; color: #536c7d; }
-.lift-indicator > span:nth-child(2) { font: 13px var(--mono); letter-spacing: .6px; writing-mode: vertical-rl; }
-.lift-indicator > strong { font: 15px var(--mono); }
-.lift-rule { position: absolute; top: 0; left: -18px; height: 120px; width: 1px; background: #becbd4; }
 .story-door { position: absolute; z-index: 4; top: 14%; right: max(56px, calc((100vw - 1440px) / 2)); width: min(52%, 720px, 72svh); height: auto; aspect-ratio: 1; opacity: 0; overflow: hidden; box-shadow: 0 20px 50px #1023341a; }
 .story-door > img { display: block; height: 100%; width: 100%; object-fit: cover; }
 .door-detection { position: absolute; top: 14%; left: 76%; width: 17%; height: 18%; opacity: 0; transition: opacity .2s; }
@@ -392,10 +388,6 @@ h2 { margin-bottom: 0; font-size: clamp(34px, 3.5vw, 52px); line-height: 1.12; l
   .story-chapter .eyebrow { margin-bottom: 16px; font-size: 13px; }
   .story-chapter h2 { font-size: 33px; letter-spacing: -1.2px; }
   .story-chapter > p { max-width: 285px; font-size: 16px; margin-top: 17px; }
-  .lift-indicator { right: 6%; top: 38%; }
-  .lift-indicator > span:nth-child(2) { font-size: 12px; }
-  .lift-indicator > strong { font-size: 14px; }
-  .lift-rule { height: 95px; left: -12px; }
   .story-results { left: 20px; right: 20px; top: 12%; width: auto; }
   .story-results .eyebrow { font-size: 13px; margin-bottom: 15px; }
   .story-results h2 { font-size: 32px; line-height: 1.1; }
@@ -498,8 +490,9 @@ h2 { margin-bottom: 0; font-size: clamp(34px, 3.5vw, 52px); line-height: 1.12; l
   .data-sheet-head { flex-wrap: wrap; gap: 10px; }
 }
 @media (max-width: 680px) and (max-height: 740px) {
-  .story-intro { top: 165px; }
+  .story-intro { top: 150px; }
   .story-intro .eyebrow { display: none; }
+  .story-intro h1 { font-size: 34px; letter-spacing: -1px; }
   .story-sticky[data-phase="0"] .scroll-instruction { display: none; }
 }
 @media (max-width: 380px) {

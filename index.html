@@ -8,11 +8,11 @@
   <title>Container Vision | Leitura de contêineres — SIAMAC</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="fonts.css">
-  <link rel="stylesheet" href="styles.css">
-  <link rel="preload" as="image" href="assets/stacker-base.webp">
+  <link rel="stylesheet" href="styles.css?v=20261022-truck">
+  <link rel="preload" as="image" href="assets/container-truck.webp">
   <link rel="preload" as="image" href="assets/container-cargo.webp">
   <script src="script.js" defer></script>
-  <script src="scroll-scene.js" defer></script>
+  <script src="scroll-scene.js?v=20261022-truck" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#inicio">Pular para o conteúdo</a>
@@ -25,7 +25,7 @@
   <main>
     <section class="scroll-story" id="inicio" aria-label="Movimentação e leitura de um contêiner, controladas pela rolagem">
       <div class="story-sticky" id="story-stage">
-        <div class="story-topline"><span><i class="status-dot"></i> SIAMAC / LEITURA POR IMAGEM</span><span id="story-view-label">01 — MOVIMENTAÇÃO</span></div>
+        <div class="story-topline"><span><i class="status-dot"></i> SIAMAC / LEITURA POR IMAGEM</span><span id="story-view-label">01 — TRANSPORTE</span></div>
         <div class="story-intro" id="story-intro">
           <span class="eyebrow">CONTAINER VISION</span>
           <h1>Leitura automática<br>de contêineres.</h1>
@@ -33,13 +33,12 @@
           <div class="hero-actions"><a class="button button-primary story-start" href="#operacao">Ver a operação <span aria-hidden="true">↓</span></a><a class="text-link" href="#demonstracao">Ver demonstração <span aria-hidden="true">↗</span></a></div>
           <div class="hero-spec"><span>IDENTIFICAÇÃO ISO 6346</span><span>TAMANHO E TIPO</span></div>
         </div>
-        <div class="machine-stage" id="machine-stage"><canvas id="equipment-canvas" aria-label="Reach stacker elevando um contêiner, que gira até exibir as portas de frente. Role para avançar ou retroceder a animação."><img src="assets/stacker-base.webp" alt="Equipamento de movimentação de contêineres"></canvas></div>
-        <div class="story-chapter" id="story-chapter" aria-hidden="true" inert><span class="eyebrow" id="chapter-number">02 / ELEVAÇÃO</span><h2 id="chapter-title">A operação continua.<br>A leitura acompanha.</h2><p id="chapter-description">A identificação fica no campo de visão da câmera.</p></div>
-        <div class="lift-indicator" id="lift-indicator" aria-hidden="true" inert><span class="lift-rule" aria-hidden="true"></span><span>ELEVAÇÃO / SEQUÊNCIA VISUAL</span><strong id="lift-value">00%</strong></div>
+        <div class="machine-stage" id="machine-stage"><canvas id="equipment-canvas" aria-label="Caminhão com contêiner avança e sai da cena. Em seguida, o contêiner gira até exibir as portas de frente. Role para avançar ou retroceder a animação."><img src="assets/container-truck.webp" alt="Caminhão branco transportando um contêiner laranja"></canvas></div>
+        <div class="story-chapter" id="story-chapter" aria-hidden="true" inert><span class="eyebrow" id="chapter-number">01 / TRANSPORTE</span><h2 id="chapter-title">O caminhão segue.<br>A leitura começa.</h2><p id="chapter-description">A câmera registra a área de identificação.</p></div>
         <div class="story-door" id="story-door" aria-hidden="true"><img src="assets/container-door.webp" alt="Porta do contêiner com identificação CSQU 305438 3 e código 22G1" width="1254" height="1254"><div class="door-detection"><span>NÚMERO LOCALIZADO</span><i></i><i></i><i></i><i></i><b class="door-scanline"></b></div><span class="door-camera">IMAGEM DE EXEMPLO</span></div>
         <div class="story-results" id="story-results" aria-hidden="true"><span class="eyebrow"><span class="status-dot"></span> 03 / IDENTIFICAÇÃO</span><h2>Código lido.<br>Pronto para conferir.</h2><div class="story-readout"><span>IDENTIFICAÇÃO</span><strong>CSQU <b>305438</b> <i>3</i></strong><div><span>TAMANHO / TIPO<strong>22G1</strong></span><span>DÍGITO VERIFICADOR<strong class="readout-check">✓ Consistente</strong></span></div></div><a class="text-link" href="#demonstracao">Conferir uma leitura <span aria-hidden="true">↗</span></a></div>
         <div class="scene-loading" id="scene-loading"><span></span>Carregando a sequência…</div>
-        <div class="story-bottom"><div class="scroll-instruction"><span class="mouse-icon" aria-hidden="true"><i></i></span><span>ROLE PARA ACOMPANHAR</span></div><div class="story-timeline" role="group" aria-label="Navegar pela animação"><button data-story-to="0.02" class="active" aria-current="step"><b>01</b><span>Movimentação</span></button><button data-story-to="0.38"><b>02</b><span>Elevação</span></button><button data-story-to="0.95"><b>03</b><span>Identificação</span></button><div class="story-progress"><i id="story-progress"></i></div></div><span class="story-caption">SEQUÊNCIA ILUSTRATIVA</span></div>
+        <div class="story-bottom"><div class="scroll-instruction"><span class="mouse-icon" aria-hidden="true"><i></i></span><span>ROLE PARA ACOMPANHAR</span></div><div class="story-timeline" role="group" aria-label="Navegar pela animação"><button data-story-to="0.02" class="active" aria-current="step"><b>01</b><span>Transporte</span></button><button data-story-to="0.65"><b>02</b><span>Contêiner</span></button><button data-story-to="0.95"><b>03</b><span>Identificação</span></button><div class="story-progress"><i id="story-progress"></i></div></div><span class="story-caption">SEQUÊNCIA ILUSTRATIVA</span></div>
       </div>
     </section>
     <span id="operacao" class="story-anchor" aria-hidden="true"></span>

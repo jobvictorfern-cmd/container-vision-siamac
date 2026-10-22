@@ -1,5 +1,5 @@
 'use strict';
-/* Rolagem nativa: elevação, giro do volume completo e leitura frontal.
+/* Rolagem nativa: passagem do caminhão, giro do contêiner e leitura frontal.
    As três faces compartilham os mesmos vértices e a mesma câmera 3D. */
 (() => {
   const story = document.querySelector('.scroll-story');
@@ -11,7 +11,6 @@
   const select = id => document.getElementById(id);
   const intro = select('story-intro'), chapter = select('story-chapter');
   const door = select('story-door'), results = select('story-results');
-  const indicator = select('lift-indicator');
   const topLine = document.querySelector('.story-topline');
   const clamp = x => Math.max(0, Math.min(1, x));
   const lerp = (a, b, t) => a + (b - a) * t;
@@ -21,7 +20,7 @@
   let sceneFrame = {left:0,right:0,width:0,introBottom:0};
   const images = {};
   const sources = {
-    base: 'assets/stacker-base.webp', boom: 'assets/stacker-boom.webp',
+    truck: 'assets/container-truck.webp',
     cargo: 'assets/container-cargo.webp', door: 'assets/container-door.webp'
   };
 
@@ -38,88 +37,46 @@
     gradient.addColorStop(1, 'rgba(16,35,52,0)');
     ctx.fillStyle = gradient; ctx.beginPath(); ctx.arc(0, 0, 1, 0, Math.PI*2); ctx.fill(); ctx.restore();
   }
-  function polygon(points, color) {
-    ctx.beginPath(); points.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
-    ctx.closePath(); ctx.fillStyle = color; ctx.fill();
-  }
-  function line(ax, ay, bx, by, thickness, color) {
-    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by);
-    ctx.lineWidth = thickness; ctx.strokeStyle = color; ctx.lineCap = 'round'; ctx.stroke();
-  }
-  function pose(p) {
+  const truckDeparture = p => smooth(.055, .40, p);
+  function drawTruck(p) {
     const mobile = width <= 680;
-    const full = smooth(.025, .20, p);
-    const lift = smooth(.20, .49, p);
-    // A mesma faixa do cabeçalho limita a cena, inclusive em telas ultralargas.
-    const frameWidth=sceneFrame.width||width;
-    const startFloor=height*(mobile ? (height<=740 ? .88 : .84) : .78);
-    const finalFloor=height*.82;
-    const initialScale=mobile
-      ? Math.min(frameWidth*.95/1600,Math.max(1,startFloor-sceneFrame.introBottom-24)/900)
-      : Math.min(frameWidth*.76/1600,(startFloor-Math.max(180,height*.20))/900);
-    const finalScale=Math.min((frameWidth-(mobile?0:32))/1600,(finalFloor-(mobile?height*.38:Math.max(86,height*.10)))/1070);
-    const scale=Math.max(.001,lerp(initialScale,finalScale,full));
-    const centeredX=sceneFrame.left+(frameWidth-1600*scale)/2;
-    // Desconta a sobra transparente dos assets para alinhar o volume visível.
-    const startX=mobile?centeredX:sceneFrame.right-1490*scale;
-    const startY=startFloor-850*scale;
-    const finalX=centeredX;
-    const finalY=finalFloor-850*scale;
-    const x = lerp(startX, finalX, full), y = lerp(startY, finalY, full);
+    const full = smooth(.025, .16, p);
+    const aspect = images.truck.height / images.truck.width;
+    const floor = height - (mobile ? 108 : 105);
+    const initialWidth = mobile
+      ? Math.min(sceneFrame.width * .98, Math.max(96, floor - sceneFrame.introBottom - 18) / aspect)
+      : Math.min(sceneFrame.width * .56, height * .43 / aspect);
+    const expandedWidth = Math.min(sceneFrame.width * .92, height * .48 / aspect);
+    const w = lerp(initialWidth, expandedWidth, full), h = w * aspect;
+    const restX = lerp(sceneFrame.right - w, sceneFrame.left + (sceneFrame.width - w) / 2, full);
+    // A cabine aponta para a esquerda: o conjunto avança até sair por inteiro.
+    const x = lerp(restX, -w - 48, truckDeparture(p));
+    const y = floor - h * .93;
+    shadow(x + w * .53, floor - 1, w * .43, Math.max(8, h * .055), .16);
+    ctx.drawImage(images.truck, x, y, w, h);
+  }
+  function pose() {
+    const mobile = width <= 680;
+    const frameWidth = sceneFrame.width || width;
+    const floor = height * .82;
+    // Mantém o enquadramento original do giro e sua chegada à porta frontal.
+    const scale = Math.max(.001, Math.min((frameWidth - (mobile ? 0 : 32)) / 1600,
+      (floor - (mobile ? height * .38 : Math.max(86, height * .10))) / 1070));
+    const x = sceneFrame.left + (frameWidth - 1600 * scale) / 2;
+    const y = floor - 850 * scale;
     return {
-      mobile, full, lift,
+      mobile,
       centerX: (width*.5-x)/scale,
       centerY: (height*.5-y)/scale,
       scale,
       screenX: width*.5,
       screenY: height*.5,
-      move: -70*(1-smooth(0, .18, p)),
-      cargoY: 40-lift*160
+      move: 0,
+      cargoY: -120
     };
   }
   function toScreen(point, view) {
     return [view.screenX+(point[0]-view.centerX)*view.scale, view.screenY+(point[1]-view.centerY)*view.scale];
-  }
-  function drawEquipment(p, view, body, layer) {
-    ctx.save();
-    ctx.globalAlpha = 1-smooth(.49, .60, p);
-    ctx.translate(view.screenX, view.screenY); ctx.scale(view.scale, view.scale);
-    ctx.translate(-view.centerX, -view.centerY);
-    const pivotX = 383+view.move, pivotY = 506;
-    if (layer==='base') {
-      // Plano de apoio suave e sombras de contato nos três pneus visíveis.
-      shadow(800, 820, 760, 100, .055);
-      shadow(480+view.move, 794, 330, 55, .16);
-      shadow(243+view.move, 767, 66, 11, .38);
-      shadow(592+view.move, 828, 88, 12, .42);
-      shadow(727+view.move, 792, 55, 9, .33);
-      // A sombra da carga fica no chão e se difunde conforme a elevação.
-      shadow(1165, 806, lerp(255,315,view.lift), lerp(40,58,view.lift), lerp(.12,.065,view.lift));
-      ctx.drawImage(images.base, 170+view.move, 440, 620, 620*2/3);
-      ctx.restore(); return;
-    }
-    // O spreader acompanha o teto; o braço permanece ligado ao seu centro.
-    const world = point => {
-      const [sx,sy]=body.project(point);
-      return [view.centerX+(sx-view.screenX)/view.scale,view.centerY+(sy-view.screenY)/view.scale];
-    };
-    const roofY=BOX.height/2+.045;
-    const roof=[[-.35,roofY,-.43],[.35,roofY,-.43],[.35,roofY,.43],[-.35,roofY,.43]];
-    polygon(roof.map(world),'#39433e');
-    polygon([roof[3],roof[2],[.35,roofY-.04,.43],[-.35,roofY-.04,.43]].map(world),'#1c2926');
-    const [attachX,attachY]=world([0,roofY+.15,0]);
-    const [mountX,mountY]=world([0,roofY,0]);
-    line(mountX,mountY,attachX,attachY,8,'#323d38');
-    const dx = attachX-pivotX, dy = attachY-pivotY;
-    const boomScale = Math.hypot(dx,dy)/Math.hypot(1900,-130);
-    const angle = Math.atan2(dy,dx)-Math.atan2(-130,1900);
-    line(503+view.move, 646, lerp(pivotX,attachX,.43), lerp(pivotY,attachY,.43)+25, 20, '#3d4845');
-    line(503+view.move, 646, lerp(pivotX,attachX,.43), lerp(pivotY,attachY,.43)+25, 8, '#c4cbc7');
-    ctx.save(); ctx.translate(pivotX,pivotY); ctx.rotate(angle); ctx.scale(boomScale,boomScale);
-    ctx.drawImage(images.boom,-100,-350); ctx.restore();
-    ctx.fillStyle='#202d28'; ctx.beginPath(); ctx.arc(pivotX,pivotY,13,0,Math.PI*2); ctx.fill();
-    ctx.strokeStyle='#a8b0aa'; ctx.lineWidth=4; ctx.beginPath(); ctx.arc(pivotX,pivotY,8,0,Math.PI*2); ctx.stroke();
-    ctx.restore();
   }
   // Volume fechado: porta, lateral e teto usam os mesmos cantos projetados.
   const BOX={width:1,height:1.063,length:2.49};
@@ -228,21 +185,20 @@
     opacity(intro,1-smooth(.04,.15,p));
     intro.style.transform=`translate3d(0,${-30*full}px,0)`;
     topLine.style.transform=`translate3d(0,${-88*full}px,0)`;
-    opacity(chapter,smooth(.16,.24,p)*(1-smooth(.50,.59,p)));
-    const phase=p<.20?0:p<.66?1:2;
+    const chapterEnd = width <= 680 ? [.50,.59] : [.63,.73];
+    opacity(chapter,smooth(.16,.24,p)*(1-smooth(...chapterEnd,p)));
+    const phase=p<.40?0:p<.86?1:2;
     if(phase!==previousPhase) {
       previousPhase=phase; stage.dataset.phase=String(phase);
-      select('chapter-number').textContent=phase===0?'01 / MOVIMENTAÇÃO':'02 / ELEVAÇÃO';
-      select('chapter-title').innerHTML=phase===0?'Movimentação<br>no ponto de leitura.':'Contêiner em movimento.<br>Identificação em foco.';
+      select('chapter-number').textContent=phase===0?'01 / TRANSPORTE':'02 / CONTÊINER';
+      select('chapter-title').innerHTML=phase===0?'O caminhão segue.<br>A leitura começa.':'Contêiner em foco.<br>Pronto para identificar.';
       select('chapter-description').textContent='A câmera registra a área de identificação.';
-      select('story-view-label').textContent=['01 — MOVIMENTAÇÃO','02 — ELEVAÇÃO','03 — IDENTIFICAÇÃO'][phase];
+      select('story-view-label').textContent=['01 — TRANSPORTE','02 — CONTÊINER','03 — IDENTIFICAÇÃO'][phase];
       document.querySelectorAll('[data-story-to]').forEach((button,i)=>{
         button.classList.toggle('active',i===phase);
         if(i===phase)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');
       });
     }
-    opacity(indicator,smooth(.25,.33,p)*(1-smooth(.50,.58,p)));
-    select('lift-value').textContent=`${Math.round(smooth(.2,.49,p)*100).toString().padStart(2,'0')}%`;
     opacity(door,smooth(.89,.93,p));
     opacity(results,smooth(.86,.94,p));
     results.style.transform=`translate3d(0,${12*(1-smooth(.86,.94,p))}px,0)`;
@@ -255,14 +211,18 @@
     const dt=lastTime?Math.min(40,time-lastTime):16; lastTime=time;
     current=reduce.matches?target:lerp(current,target,1-Math.exp(-dt/65));
     if(Math.abs(target-current)<.00005)current=target;
-    const p=reduce.matches?(current<.2?0:current<.65?.40:.96):current;
+    const p=reduce.matches?(current<.40?0:current<.86?.65:.96):current;
     updateDOM(p);
     ctx.clearRect(0,0,width,height);
     if(ready) {
-      const view=pose(p),body=containerPose(p,view);
-      if(p<.60)drawEquipment(p,view,body,'base');
-      if(p<.935)drawContainer(body,view.mobile);
-      if(p<.60)drawEquipment(p,view,body,'boom');
+      if(p<.40)drawTruck(p);
+      if(p>.40 && p<.935) {
+        const view=pose(),body=containerPose(p,view);
+        ctx.save();
+        ctx.globalAlpha=smooth(.40,.50,p);
+        drawContainer(body,view.mobile);
+        ctx.restore();
+      }
     }
     if(current!==target)frame=requestAnimationFrame(render); else lastTime=0;
   }
@@ -290,7 +250,7 @@
     window.scrollTo({top:top+span*value,behavior:reduce.matches?'instant':'smooth'});
   }
   document.querySelectorAll('[data-story-to]').forEach(button=>button.addEventListener('click',()=>goTo(Number(button.dataset.storyTo))));
-  document.querySelector('.story-start').addEventListener('click',event=>{event.preventDefault();goTo(.35);});
+  document.querySelector('.story-start').addEventListener('click',event=>{event.preventDefault();goTo(.27);});
   window.addEventListener('scroll',readScroll,{passive:true});
   window.addEventListener('resize',resize,{passive:true});
   reduce.addEventListener('change',resize);
