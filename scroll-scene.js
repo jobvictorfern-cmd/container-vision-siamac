@@ -43,7 +43,7 @@
     cargo: [[398,41],[1547,41],[1547,454],[398,454]],
     wheels: [{x:253,y:566,r:68}, {x:1017,y:565,r:68}, {x:1197,y:565,r:68}]
   };
-  function truckPose(p, travel=p) {
+  function truckPose(p) {
     const mobile = width <= 680;
     const full = smooth(.025, .16, p);
     const aspect = images.truck.height / images.truck.width;
@@ -55,7 +55,7 @@
     const w = lerp(initialWidth, expandedWidth, full), h = w * aspect;
     const restX = lerp(sceneFrame.right - w, sceneFrame.left + (sceneFrame.width - w) / 2, full);
     // A cabine aponta para a esquerda: o conjunto avança até sair por inteiro.
-    const x = lerp(restX, -w - 48, truckDeparture(travel));
+    const x = lerp(restX, -w - 48, truckDeparture(p));
     const y = floor - h * .93;
     return {x,y,w,h,floor,scale:w/TRUCK.width,distance:(x-restX)/(w/TRUCK.width)};
   }
@@ -85,32 +85,9 @@
     }
     ctx.restore();
   }
-  function pose() {
-    const mobile = width <= 680;
-    const frameWidth = sceneFrame.width || width;
-    const floor = height * .82;
-    // Mantém o enquadramento original do giro e sua chegada à porta frontal.
-    const scale = Math.max(.001, Math.min((frameWidth - (mobile ? 0 : 32)) / 1600,
-      (floor - (mobile ? height * .38 : Math.max(86, height * .10))) / 1070));
-    const x = sceneFrame.left + (frameWidth - 1600 * scale) / 2;
-    const y = floor - 850 * scale;
-    return {
-      mobile,
-      centerX: (width*.5-x)/scale,
-      centerY: (height*.5-y)/scale,
-      scale,
-      screenX: width*.5,
-      screenY: height*.5,
-      move: 0,
-      cargoY: -120
-    };
-  }
-  function toScreen(point, view) {
-    return [view.screenX+(point[0]-view.centerX)*view.scale, view.screenY+(point[1]-view.centerY)*view.scale];
-  }
   // Volume fechado: porta, lateral e teto usam os mesmos cantos projetados.
   const BOX={width:1,height:1.063,length:2.49};
-  const CAMERA={focal:3485.6244,x:683.7275,y:418.4264,distance:5.9670927,yaw:.6557454,pitch:.1951831,roll:-.0019284};
+  const CAMERA={focal:3485.6244,distance:5.9670927};
   const VERTICES=[
     [-.5,BOX.height/2,BOX.length/2],[.5,BOX.height/2,BOX.length/2],
     [.5,-BOX.height/2,BOX.length/2],[-.5,-BOX.height/2,BOX.length/2],
@@ -119,52 +96,35 @@
   ];
   const PHOTO_CORNERS=[[947,218],[1456,166],[1457,848],[947,968],[74,79],[496,50],[77,592]];
   function project3D([x,y,z],turn) {
-    const yaw=CAMERA.yaw*(1-turn),pitch=CAMERA.pitch*(1-turn),roll=CAMERA.roll*(1-turn);
+    const yaw=Math.PI/2*(1-turn),pitch=.18*Math.sin(Math.PI*turn);
     const rx=x*Math.cos(yaw)+z*Math.sin(yaw),rz=-x*Math.sin(yaw)+z*Math.cos(yaw);
     const ry=y*Math.cos(pitch)-rz*Math.sin(pitch),depth=y*Math.sin(pitch)+rz*Math.cos(pitch);
-    const px=rx*Math.cos(roll)-ry*Math.sin(roll),py=rx*Math.sin(roll)+ry*Math.cos(roll);
     const perspective=CAMERA.focal/(CAMERA.distance-depth);
-    return [CAMERA.x+px*perspective,CAMERA.y-py*perspective];
+    return [rx*perspective,-ry*perspective];
   }
-  const PHOTO_CORRECTION=VERTICES.map((v,i)=>project3D(v,0).map((n,axis)=>PHOTO_CORNERS[i][axis]-n));
-  function containerPose(p,view) {
-    const turn=smooth(.52,.88,p),focus=smooth(.51,.89,p);
-    const photoScale=650/1536*view.scale;
-    const [baseX,baseY]=toScreen([825+view.move*.15,view.cargoY],view);
-    const neutralScale=CAMERA.focal/(CAMERA.distance-BOX.length/2);
-    const destination=doorTarget||{left:baseX,top:baseY,w:650*view.scale,h:650*view.scale};
-    const scaleX=lerp(photoScale,destination.w/neutralScale,focus);
-    const scaleY=lerp(photoScale,destination.h/(neutralScale*BOX.height),focus);
-    const originX=lerp(baseX+CAMERA.x*photoScale,destination.left+destination.w/2,focus);
-    const originY=lerp(baseY+CAMERA.y*photoScale,destination.top+destination.h/2,focus);
-    const screen=([x,y])=>[originX+(x-CAMERA.x)*scaleX,originY+(y-CAMERA.y)*scaleY];
-    const corners=VERTICES.map((v,i)=>screen(project3D(v,turn).map((n,axis)=>n+PHOTO_CORRECTION[i][axis]*(1-turn))));
-    // O giro inteiro respeita as margens do cabeçalho. No celular, a câmera
-    // também acompanha o centro do volume até o enquadramento frontal.
-    const xs=corners.map(v=>v[0]),ys=corners.map(v=>v[1]);
-    const minX=Math.min(...xs),maxX=Math.max(...xs);
-    const centerX=(minX+maxX)/2,centerY=(Math.min(...ys)+Math.max(...ys))/2;
-    const fit=Math.min(1,sceneFrame.width/(maxX-minX));
-    let shiftX=view.mobile?(sceneFrame.left+sceneFrame.width/2-centerX)*smooth(.50,.63,p):0;
-    const fittedLeft=centerX+(minX-centerX)*fit+shiftX;
-    const fittedRight=centerX+(maxX-centerX)*fit+shiftX;
-    shiftX+=Math.max(sceneFrame.left-fittedLeft,Math.min(0,sceneFrame.right-fittedRight));
-    const frame=([x,y])=>[centerX+(x-centerX)*fit+shiftX,centerY+(y-centerY)*fit];
-    return {turn,corners:corners.map(frame),project:point=>frame(screen(project3D(point,turn)))};
-  }
-  function cargoPose(p,view) {
-    // A carga acompanha a carroceria e desacelera gradualmente para o foco.
-    // Todos os vértices partem da lateral real da imagem do caminhão.
-    const follow = p<=.12 ? p : .12+.04*(1-Math.exp(-(p-.12)/.04));
-    const truck = truckPose(p,follow);
-    const [a,b,c,d] = TRUCK.cargo;
-    const side = [b,b,c,c,a,a,d].map(([x,y])=>[truck.x+x*truck.scale,truck.y+y*truck.scale]);
-    const focus = smooth(.12,.52,p);
-    const destination = containerPose(p,view);
-    return {
-      ...destination,
-      corners:side.map((point,i)=>point.map((n,axis)=>lerp(n,destination.corners[i][axis],focus)))
-    };
+  function cargoPose(p) {
+    // Um único percurso: posição na carroceria → enquadramento final da porta.
+    // O giro começa nessa posição, sem passar pelas coordenadas do guindaste.
+    const truck = truckPose(Math.min(p,.12));
+    const [a,b,,d] = TRUCK.cargo;
+    const start={left:truck.x+a[0]*truck.scale,top:truck.y+a[1]*truck.scale,
+      w:(b[0]-a[0])*truck.scale,h:(d[1]-a[1])*truck.scale};
+    const destination=doorTarget||start;
+    const turn=smooth(.12,.89,p);
+    const sideFactor=CAMERA.focal/(CAMERA.distance-.5);
+    const frontFactor=CAMERA.focal/(CAMERA.distance-BOX.length/2);
+    const scaleX=lerp(start.w/(sideFactor*BOX.length),destination.w/frontFactor,turn);
+    const scaleY=lerp(start.h/(sideFactor*BOX.height),destination.h/(frontFactor*BOX.height),turn);
+    const projected=VERTICES.map(v=>project3D(v,turn).map((n,axis)=>n*(axis===0?scaleX:scaleY)));
+    const xs=projected.map(v=>v[0]),ys=projected.map(v=>v[1]);
+    const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+    const centerX=lerp(start.left+start.w/2,destination.left+destination.w/2,turn);
+    const availableWidth=2*Math.min(centerX-sceneFrame.left,sceneFrame.right-centerX);
+    const fit=Math.min(1,availableWidth/(maxX-minX));
+    const centerY=lerp(start.top+start.h/2,destination.top+destination.h/2,turn);
+    return {turn,corners:projected.map(([x,y])=>[
+      centerX+(x-(minX+maxX)/2)*fit,centerY+(y-(minY+maxY)/2)*fit
+    ])};
   }
   // Homografia por face; a textura acompanha o giro do sólido.
   function projectiveMap(q) {
@@ -261,8 +221,7 @@
     if(ready) {
       if(p<.40)drawTruck(p);
       if(p<.935) {
-        const view=pose(),body=cargoPose(p,view);
-        drawContainer(body,view.mobile);
+        drawContainer(cargoPose(p),width<=680);
       }
     }
     if(current!==target)frame=requestAnimationFrame(render); else lastTime=0;

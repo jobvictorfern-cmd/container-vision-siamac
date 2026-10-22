@@ -7,7 +7,7 @@ A logo é o arquivo original fornecido pelo usuário, preservado como `assets/si
 ## Assets finais
 
 - `assets/container-truck.webp`: caminhão branco com contêiner laranja, vista lateral, cabine voltada para a esquerda. Arquivo com transparência, 1600 × 694 px, preparado em WebP a partir do PNG gerado.
-- `assets/container-cargo.webp`: origem das texturas da lateral e do teto, projetadas nos cantos compartilhados do volume.
+- `assets/container-cargo.webp`: textura do teto, projetada nos cantos compartilhados do volume. A lateral usa a área do contêiner na imagem do caminhão.
 - `assets/container-door.webp`: textura das portas durante toda a sequência e imagem frontal para identificação.
 - `assets/siamac-logo.png`: marca fornecida pelo usuário.
 
@@ -15,7 +15,7 @@ Formato WebP com transparência preservada nos componentes recortados. Os origin
 
 ## Continuidade e rodas
 
-O arquivo do caminhão permanece intacto. O Canvas mascara a área da carga na carroceria e usa essa mesma área como textura da lateral do volume. A carga acompanha o veículo no início, desacelera suavemente e muda de enquadramento pelos vértices compartilhados, sem fade entre dois contêineres. A partir de 52% da sequência, o enquadramento coincide com o giro anterior.
+O arquivo do caminhão permanece intacto. O Canvas mascara a área da carga na carroceria e usa essa mesma área como textura da lateral do volume. A carga acompanha o veículo no início e gira diretamente da posição na carroceria até o enquadramento final da porta. O centro, a escala e a rotação seguem um único percurso, sem utilizar a posição antiga do guindaste, sem enquadramento intermediário e sem fade entre dois contêineres.
 
 Os discos das três rodas são redesenhados em máscaras circulares centradas nos eixos. O ângulo é calculado pela distância percorrida dividida pelo raio do pneu. Não há rotação independente da rolagem; ao parar, as rodas param, e ao voltar, giram no sentido inverso. O modo de movimento reduzido mantém as etapas estáticas.
 
