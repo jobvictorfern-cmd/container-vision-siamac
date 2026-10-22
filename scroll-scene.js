@@ -1,5 +1,5 @@
 'use strict';
-/* Rolagem nativa: passagem do caminhão, giro do contêiner e leitura frontal.
+/* Rolagem nativa: rodas, carroceria e contêiner compartilham o mesmo movimento.
    As três faces compartilham os mesmos vértices e a mesma câmera 3D. */
 (() => {
   const story = document.querySelector('.scroll-story');
@@ -38,7 +38,12 @@
     ctx.fillStyle = gradient; ctx.beginPath(); ctx.arc(0, 0, 1, 0, Math.PI*2); ctx.fill(); ctx.restore();
   }
   const truckDeparture = p => smooth(.055, .40, p);
-  function drawTruck(p) {
+  const TRUCK = {
+    width: 1600, height: 694, wheelRadius: 82,
+    cargo: [[398,41],[1547,41],[1547,454],[398,454]],
+    wheels: [{x:253,y:566,r:68}, {x:1017,y:565,r:68}, {x:1197,y:565,r:68}]
+  };
+  function truckPose(p, travel=p) {
     const mobile = width <= 680;
     const full = smooth(.025, .16, p);
     const aspect = images.truck.height / images.truck.width;
@@ -50,10 +55,35 @@
     const w = lerp(initialWidth, expandedWidth, full), h = w * aspect;
     const restX = lerp(sceneFrame.right - w, sceneFrame.left + (sceneFrame.width - w) / 2, full);
     // A cabine aponta para a esquerda: o conjunto avança até sair por inteiro.
-    const x = lerp(restX, -w - 48, truckDeparture(p));
+    const x = lerp(restX, -w - 48, truckDeparture(travel));
     const y = floor - h * .93;
-    shadow(x + w * .53, floor - 1, w * .43, Math.max(8, h * .055), .16);
-    ctx.drawImage(images.truck, x, y, w, h);
+    return {x,y,w,h,floor,scale:w/TRUCK.width,distance:(x-restX)/(w/TRUCK.width)};
+  }
+  function drawTruck(p) {
+    const truck = truckPose(p);
+    shadow(truck.x + truck.w * .53, truck.floor - 1, truck.w * .43, Math.max(8, truck.h * .055), .16);
+    ctx.save();
+    ctx.translate(truck.x,truck.y); ctx.scale(truck.scale,truck.scale);
+    ctx.save();
+    // O contêiner é desenhado como volume separado desde o primeiro quadro.
+    // A carroceria pode continuar avançando sem deixar outra carga para trás.
+    ctx.beginPath();
+    ctx.rect(0,0,TRUCK.width,TRUCK.height);
+    ctx.rect(395,0,1160,455);
+    ctx.clip('evenodd');
+    ctx.drawImage(images.truck,0,0);
+    ctx.restore();
+    // Gira apenas o disco de cada roda; pneus, paralamas e sombras ficam alinhados.
+    // Distância / raio liga o giro à viagem e também inverte o giro ao voltar.
+    for(const wheel of TRUCK.wheels) {
+      ctx.save();
+      ctx.translate(wheel.x,wheel.y);
+      ctx.beginPath(); ctx.arc(0,0,wheel.r,0,Math.PI*2); ctx.clip();
+      ctx.rotate(truck.distance/TRUCK.wheelRadius);
+      ctx.drawImage(images.truck,-wheel.x,-wheel.y);
+      ctx.restore();
+    }
+    ctx.restore();
   }
   function pose() {
     const mobile = width <= 680;
@@ -122,6 +152,20 @@
     const frame=([x,y])=>[centerX+(x-centerX)*fit+shiftX,centerY+(y-centerY)*fit];
     return {turn,corners:corners.map(frame),project:point=>frame(screen(project3D(point,turn)))};
   }
+  function cargoPose(p,view) {
+    // A carga acompanha a carroceria e desacelera gradualmente para o foco.
+    // Todos os vértices partem da lateral real da imagem do caminhão.
+    const follow = p<=.12 ? p : .12+.04*(1-Math.exp(-(p-.12)/.04));
+    const truck = truckPose(p,follow);
+    const [a,b,c,d] = TRUCK.cargo;
+    const side = [b,b,c,c,a,a,d].map(([x,y])=>[truck.x+x*truck.scale,truck.y+y*truck.scale]);
+    const focus = smooth(.12,.52,p);
+    const destination = containerPose(p,view);
+    return {
+      ...destination,
+      corners:side.map((point,i)=>point.map((n,axis)=>lerp(n,destination.corners[i][axis],focus)))
+    };
+  }
   // Homografia por face; a textura acompanha o giro do sólido.
   function projectiveMap(q) {
     const [[x0,y0],[x1,y1],[x2,y2],[x3,y3]] = q;
@@ -176,13 +220,13 @@
     const face=indices=>indices.map(i=>body.corners[i]);
     const photo=indices=>indices.map(i=>PHOTO_CORNERS[i]);
     const n=mobile?5:8;
-    drawFace(images.cargo,photo([4,0,3,6]),face([4,0,3,6]),n,4);
+    drawFace(images.truck,TRUCK.cargo,face([4,0,3,6]),n,4);
     drawFace(images.cargo,photo([4,5,1,0]),face([4,5,1,0]),n,3);
     drawFace(images.door,[[0,0],[1254,0],[1254,1254],[0,1254]],face([0,1,2,3]),n,n);
   }
   function updateDOM(p) {
     const full=smooth(.025,.20,p);
-    opacity(intro,1-smooth(.04,.15,p));
+    opacity(intro,1-smooth(.02,.11,p));
     intro.style.transform=`translate3d(0,${-30*full}px,0)`;
     topLine.style.transform=`translate3d(0,${-88*full}px,0)`;
     const chapterEnd = width <= 680 ? [.50,.59] : [.63,.73];
@@ -216,12 +260,9 @@
     ctx.clearRect(0,0,width,height);
     if(ready) {
       if(p<.40)drawTruck(p);
-      if(p>.40 && p<.935) {
-        const view=pose(),body=containerPose(p,view);
-        ctx.save();
-        ctx.globalAlpha=smooth(.40,.50,p);
+      if(p<.935) {
+        const view=pose(),body=cargoPose(p,view);
         drawContainer(body,view.mobile);
-        ctx.restore();
       }
     }
     if(current!==target)frame=requestAnimationFrame(render); else lastTime=0;

@@ -1,6 +1,6 @@
 # Direção visual e assets — Container Vision / SIAMAC
 
-Os componentes fotorrealistas foram gerados pelo recurso integrado de geração de imagens (built-in imagegen). São representações ilustrativas, não fotografias de uma instalação real e não são imagens obtidas pelas câmeras do produto. A abertura mostra um caminhão completo transportando um contêiner. O conjunto sai para a esquerda com a rolagem; depois, o contêiner de geometria 3D texturizada em Canvas retoma a sequência existente. Lateral, teto e portas giram como um volume único até o enquadramento frontal.
+Os componentes fotorrealistas foram gerados pelo recurso integrado de geração de imagens (built-in imagegen). São representações ilustrativas, não fotografias de uma instalação real e não são imagens obtidas pelas câmeras do produto. A abertura mostra um caminhão completo transportando um contêiner. A carroceria, as rodas e a carga são desenhadas em camadas no Canvas a partir da mesma imagem. A carroceria sai para a esquerda enquanto o próprio contêiner passa para o volume tridimensional. Lateral, teto e portas giram como um volume único até o enquadramento frontal.
 
 A logo é o arquivo original fornecido pelo usuário, preservado como `assets/siamac-logo.png`. Não foi redesenhada nem gerada por IA.
 
@@ -12,6 +12,12 @@ A logo é o arquivo original fornecido pelo usuário, preservado como `assets/si
 - `assets/siamac-logo.png`: marca fornecida pelo usuário.
 
 Formato WebP com transparência preservada nos componentes recortados. Os originais PNG são mantidos na área de geração; a codificação em WebP apenas prepara os arquivos para a página.
+
+## Continuidade e rodas
+
+O arquivo do caminhão permanece intacto. O Canvas mascara a área da carga na carroceria e usa essa mesma área como textura da lateral do volume. A carga acompanha o veículo no início, desacelera suavemente e muda de enquadramento pelos vértices compartilhados, sem fade entre dois contêineres. A partir de 52% da sequência, o enquadramento coincide com o giro anterior.
+
+Os discos das três rodas são redesenhados em máscaras circulares centradas nos eixos. O ângulo é calculado pela distância percorrida dividida pelo raio do pneu. Não há rotação independente da rolagem; ao parar, as rodas param, e ao voltar, giram no sentido inverso. O modo de movimento reduzido mantém as etapas estáticas.
 
 ## Conjunto de prompts final
 

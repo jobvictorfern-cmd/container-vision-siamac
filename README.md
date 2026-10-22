@@ -24,7 +24,9 @@ Abra `index.html` no navegador. Para publicar, envie os arquivos da raiz a uma h
 
 `scroll-scene.js` controla a passagem de um caminhão carregado e o giro do contêiner pela rolagem nativa. O movimento é reversível; os controles inferiores permitem saltar entre Transporte, Contêiner e Identificação.
 
-A abertura mostra um caminhão branco com contêiner laranja, em imagem fotorrealista com transparência. Ao rolar, o conjunto avança para a esquerda até sair completamente da tela. Em seguida, o contêiner aparece e retoma o giro até a porta frontal, com o mesmo enquadramento e os mesmos dados da sequência anterior.
+A abertura mostra um caminhão branco com contêiner laranja, em imagem fotorrealista com transparência. As três rodas giram de acordo com a distância percorrida e revertem o sentido ao voltar a rolagem. O contêiner é uma camada independente desde o primeiro quadro, alinhada à carroceria e com a textura da própria imagem do caminhão.
+
+Ao rolar, a carroceria continua para a esquerda enquanto a carga desacelera e ganha destaque. Seus vértices passam de uma vista lateral para o volume tridimensional; não há desaparecimento da carga nem entrada de um segundo contêiner. A partir daí, o giro continua até a porta frontal, com o mesmo enquadramento e os mesmos dados da sequência anterior.
 
 O contêiner é um volume com geometria 3D: lateral, teto e portas compartilham os mesmos vértices. A câmera projeta a rotação no eixo vertical, reduz a inclinação e aproxima o conjunto até a vista frontal. As texturas acompanham cada face por homografia, sem separar a porta do restante do contêiner. A mesma imagem das portas é usada do início ao fim e coincide com o enquadramento final da interface.
 
